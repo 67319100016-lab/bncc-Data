@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Information System - Panichayakan Bangna</title>
+    <style>
+        :root {
+            /* โทนสีฟ้า-ขาว แบบ Modern */
+            --primary-blue: #0077b6;
+            --secondary-blue: #00b4d8;
+            --light-blue: #caf0f8;
+            --bg-body: #f8fbff;
+            --white: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #546e7a;
+            --border-color: #e1e8ed;
+        }
+
+        body.night {
+            --bg-body: #0b1120;
+            --white: #1e293b;
+            --primary-blue: #38bdf8;
+            --secondary-blue: #0ea5e9;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Sarabun', system-ui, -apple-system, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            padding: 2rem 1rem;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
+        header p { margin: 0.5rem 0 0; opacity: 0.9; font-weight: 300; }
+
+        /* Navigation & Controls */
+        .search-area {
+            background: var(--white);
+            margin: -25px auto 20px;
+            width: 90%;
+            max-width: 1100px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: center;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
+        }
+
+        /* Main Content */
+        main {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 25px;
+            padding: 0 5% 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid var(--border-color);
+        }
+
+        /* ข้อมูลอาคาร */
+        .building-detail h2 {
+            color: var(--primary-blue);
+            margin-top: 0;
+            border-bottom: 2px solid var(--light-blue);
+            padding-bottom: 10px;
+        }
+
+        .building-detail p { color: var(--text-muted); font-size: 1.1rem; }
+
+        .building-img-wrapper {
+            width: 100%;
+            height: 350px;
+            overflow: hidden;
+            border-radius: 15px;
+            margin: 20px 0;
+            background: var(--light-blue);
+            display: none;
+        }
+
+        .building-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .building-img-wrapper:hover img { transform: scale(1.05); }
+
+        /* รายชื่อห้อง */
+/* --- CSS สำหรับไอคอนห้องเรียนแบบใหม่ --- */
+.room-item {
+    padding: 18px; /* เพิ่มพื้นที่ให้น่ากดมากขึ้น */
+    background: var(--bg-body);
+    border-radius: 15px; /* โค้งมนมากขึ้น */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* เว้นระยะห่างไอคอนกับชื่อห้อง */
+    border: 1px solid var(--border-color); /* เพิ่มเส้นขอบเบาๆ ให้แต่ละห้อง */
+    margin-bottom: 10px; /* เว้นระยะห่างระหว่างห้อง */
+    transition: all 0.2s ease-in-out;
+    cursor: default;
+}
+
+.room-item:hover {
+    border-color: var(--secondary-blue);
+    transform: translateY(-2px); /* ลอยขึ้นเล็กน้อยเวลาเมาส์ชี้ */
+    box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1); /* เพิ่มเงา */
+}
+
+/* ปรับแต่งกล่องไอคอนใหม่ */
+.room-icon {
+    width: 45px; /* ขนาดใหญ่ขึ้น */
+    height: 45px;
+    background: linear-gradient(135deg, var(--light-blue), #ffffff); /* ไล่สีพื้นหลัง */
+    color: var(--primary-blue);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem; /* ขนาดไอคอน Emoji */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); /* เงาด้านในให้ดูมีมิติ */
+    border: 1px solid rgba(0, 180, 216, 0.2);
+}
+
+/* ปรับแต่งตัวอักษรชื่อห้อง */
+.room-item span {
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 1.05rem;
+}
+
+/* Utility Class สำหรับ Night Mode */
+body.night .room-item {
+    background: #141e30;
+    border-color: #2a3b55;
+}
+
+body.night .room-icon {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: var(--primary-blue);
+    border-color: #334155;
+}
+
+        /* Utility */
+        .night-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .highlight-item {
+            background: var(--light-blue) !important;
+            border: 1px solid var(--secondary-blue) !important;
+            font-weight: bold;
+        }
+
+        /* --- สไตล์สำหรับ Grid แสดงอาคารหน้าแรก --- */
+/* ปรับ Building Grid ให้แสดงผล 4 คอลัมน์แนวตั้ง */
+.building-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* บังคับแสดง 4 ช่อง */
+    gap: 20px;
+    margin-top: 20px;
+}
+/* ตั้งค่าให้ส่วนรายชื่อห้องเรียนซ่อนตัวไว้ก่อน */
+.room-list-container {
+    display: none; /* ปิดการแสดงผลเบื้องต้น */
+}
+/* เมื่อซ่อนส่วนขวา ให้ส่วนรายละเอียดอาคารขยายกว้างเต็มจอ */
+main.full-width {
+    grid-template-columns: 1fr; /* ปรับ Grid หลักให้เหลือช่องเดียวแบบเต็มพื้นที่ */
+}
+/* ปรับให้รองรับหน้าจอขนาดเล็ก (Responsive) */
+@media (max-width: 1200px) {
+    .building-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px) {
+    .building-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .building-grid { grid-template-columns: 1fr; }
+}
+
+.building-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.building-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 119, 182, 0.1);
+    border-color: var(--secondary-blue);
+}
+
+.card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.card-info {
+    padding: 15px;
+}
+
+.card-info h4 {
+    margin: 0;
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.card-info p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ปุ่มสำหรับย้อนกลับหน้าแรก */
+.back-btn {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: var(--primary-blue);
+    cursor: pointer;
+    font-weight: bold;
+    display: none; /* ซ่อนไว้ก่อน */
+}
+/* ปุ่มย้อนกลับ */
+.back-btn {
+    display: none; /* ซ่อนไว้ก่อนในตอนเริ่ม */
+    align-items: center;
+    gap: 8px;
+    background: var(--light-blue);
+    color: var(--primary-blue);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+    width: auto; /* ให้ปุ่มกว้างพอดีตัวหนังสือ */
+}
+
+.back-btn:hover {
+    background: var(--primary-blue);
+    color: white;
+    transform: translateX(-5px);
+}
+
+body.night .back-btn {
+    background: #1e293b;
+    color: var(--primary-blue);
+}/* ปุ่มย้อนกลับ */
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏢 พณิชยการบางนา</h1>
+    <p>ระบบสืบค้นข้อมูลอาคารและห้องเรียนออนไลน์</p>
+</header>
+
+<div class="search-area">
+    <input id="search" type="text" placeholder="🔍 ค้นหาห้องเรียน (เช่น 9601)..." oninput="handleSearch()">
+    
+    <select id="buildingSelect" onchange="updateFloors()">
+        <option value="">-- เลือกอาคาร --</option>
+    </select>
+
+    <select id="floorSelect" onchange="showRooms()">
+        <option value="">-- เลือกชั้น --</option>
+    </select>
+</div>
+
+
+
+<main>
+    <section class="card building-detail">
+      <button id="backBtn" class="back-btn" onclick="resetToHome()">⬅️ ย้อนกลับไปหน้าอาคารทั้งหมด</button>
+        <h2 id="bName">ยินดีต้อนรับ</h2>
+        <p id="bDesc">กรุณาเลือกอาคารหรือค้นหาห้องที่ท่านต้องการทราบข้อมูล</p>
+        <div id="imgWrapper" class="building-img-wrapper">
+            <img id="bImg" src="" alt="Building Image">
+        </div>
+    </section>
+        <section id="map-section">
+        <div id="map-wrap">
+            <svg id="map" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
+                </svg>
+        </div>
+    </section>
+    <section class="card room-list-container">
+        <h3 id="floorTitle">🏫 รายชื่อห้องเรียน</h3>
+        <div id="roomList" class="room-grid">
+            <div style="color: var(--text-muted); text-align: center; padding: 20px;">
+                เลือกอาคารและชั้นเพื่อแสดงผล
+            </div>
+        </div>
+    </section>
+</main>
+
+<button class="night-mode-toggle" onclick="toggleNight()">🌓</button>
+
+<script>
+const buildings = {
+ 1:{
+    name:"ตึก 1 (อาคารสุนีย์ นิมมานเหมินท์)",
+    description: "ตึกหน้าทางเข้าของวิทยาลัย",
+    image:"https://www.ananda.co.th/blog/thegenc/wp-content/uploads/2023/10/%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2%E0%B8%9E%E0%B8%93%E0%B8%B4%E0%B8%8A%E0%B8%A2%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%9A%E0%B8%B2%E0%B8%87%E0%B8%99%E0%B8%B2-FI.jpg    ",
+    floors:{
+      1:["แผนกสาขาธุรกิจค้าปลีก","ห้องผู้อำนวยการวิทยาลัย","ห้องรองผู้อำนวยการวิทยาลัย","ห้องการเงิน","ห้องบุคลากร","ห้องบัญชี","ห้องบริหารงานทั่วไป","ห้องประชุมสุวรรณภูมิ","ห้องควบคุมสารสนเทศ","ห้องประชาสัมพันธ์","ห้องพักครู","ห้องปกครอง"],
+      2:["แผนกสาขาการโรงแรม","ห้องงานทะเบียน","2ห้องชมรมพุทธศาสนา","ห้องประชุมมูลนิธิฯ","ห้องบางนาเน็ต"]
+    },
+    lat:13.675929,
+    lng:100.616100,
+    x:520,y:400
+  },
+  2:{
+    description: "ตึกสีเหลืองหลังตึก1",
+    image:"images/b2.jpg",
+    name:"ตึก 2 (อาคารรุ่งเรือง)",
+    floors:{
+      1:["ห้องศรีนห้องประชุมศรีนครินทร์"],
+      2:["แผนกสาขาบัญชี","ห้องเรียน 2201","ห้องเรียน 2203"],
+      3:["แผนกสาขาโรงแรม","ห้องเรียน 2301","ห้องเรียน 2302","ห้องเรียน 2303","ห้องเรียน 2304"],
+      4:["ห้องเรียน 2401","ห้องเรียน 2402","ห้องเรียน 2403","ห้องเรียน 2404"]
+    },
+    lat:13.675492,
+    lng:100.616211,
+    x:600,y:480
+  },
+  3:{
+    description: "ตึก 3 สีแดงหลังตึก 2",
+    image:"images/b3.jpg",
+    name:"ตึก 3 (อาคารรุ่งแสง)",
+    floors:{
+      1:["ห้องอุปกรณ์งานอาคารสถานที่","ห้องชมรมอนุรักษ์ธรรมชาติและสิ่งแวดล้อม","ห้องพยาบาล","ห้องเรียน 3101,3102","ห้องงานแนะแนวอาชีพและการจัดหางาน","ห้องงานอาคารสถานที่","ห้องงานโครงการพิเศษและบริการชุมชนและห้องพักครู"],
+      2:["แผนกสาขาสามัญสัมพันธ์","ห้องเรียน","3201","3202","3203","3204","3205","3206","3207","3208","3209","3210","ห้องพักครู"],
+      3:["ห้องเรียน 3301","ห้องเรียน 3302","ห้องเรียน 3303","ห้องเรียน 3304","ห้องเรียน 3305","ห้องเรียน 3306","ห้องเรียน 3307","ห้องเรียน 3308","ห้องเรียน 3309","ห้องเรียน 3310","ห้องพักครู"],
+      4:["ห้องเรียน 3401","ห้องเรียน 3402","ห้องเรียน 3403","ห้องเรียน 3404","ห้องเรียน 3405","ห้องเรียน 3406","ห้องเรียน 3407","ห้องเรียน 3408","ห้องเรียน 3409","ห้องเรียน 3410","ห้องพักครู"]
+    },
+    lat:13.675388,
+    lng:100.616557,
+    x:710,y:400
+  },
+  4:{
+    description: "อยู่ระหว่าง ตึก1 กับ ตึก2",
+    image:"images/b4.jpg",
+    name:"อาคาร 4",
+    floors:{
+      1:["สหกรณ์วิทยาลัย","B SHOP","อาคารอเนกประสงค์"]
+    },
+    lat:13.675897,
+    lng:100.616593,
+    x:600,y:340
+  },
+  5:{
+    description: "อยู่ข้างหลังโดมหน้าเสาธง",
+    image:"images/b5.jpg",
+    name:"ตึก 5 อาคารชนะ รุ่งแสง (พลศึกษา)",
+    floors:{
+      1:["อาคารโรงพลศึกษาใช้สำหรับการเรียนกีฬาในร่ม"]
+    },
+    lat:13.674903,
+    lng:100.615781,
+    x:630,y:620
+  },
+  6:{
+    name:"ตึก 6 อาคารเรียน 6",
+    description: "อยู่ข้างตึก1",
+    image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTkVHWrKe4hG6I7XdDsyK0Ml4NpKZG2KpN6A&s",
+    floors:{
+      1:["ห้องงานพัสดุ","ห้องสำนักงานสมาคมศิษย์เก่าพณิชยการบางนา","ห้องน้ำ"],
+      2:["ห้องงานสื่อการเรียนการสอน","ห้องเก็บอุปกรณ์","ห้องน้ำ"],
+      3:["ห้องประชุมสุขุมวิท","ห้องรับรองวิทยากร","ห้องน้ำ"],
+      4:["ห้องเรียน 6401","ห้องเรียน 6402","ห้องเรียน 6403","ห้องเรียน 6404","ห้องอเนกประสงค์","ห้องพักครู"],
+      5:["ห้องเรียนเทคโนโลยีบัณฑิต","ห้องเรียน 6501","ห้องเรียน 6502","ห้องเรียน 6503","ห้องเรียน 6504","ห้องเรียน 6505","ห้องเรียน 6506"],
+      6:["แผนกสาขาการจัดการโลจิสติกส์","ห้องเรียน 6601","ห้องเรียน 6602","ห้องเรียน 6603","ห้องเรียน 6604","ห้องเรียน 6605"]
+    },
+    lat:13.676359,
+    lng:100.616549,
+    x:510,y:250
+  },
+  7:{
+    name:"ตึก 7 อาคารเรียน 7",
+    description: "อยู่ข้างหลังโรงอาหารเก่า",
+    image:"https://thai.haogiayensao.com/store/edu/17734-0.jpg",
+    floors:{
+      1:["ห้องปฏิบัติการขาย","7102","7102","ห้องน้ำ"],
+      2:["ห้องงานพัฒนาหลักสูตรและการสอน","ห้องงานวัดผลและประเมินผล","แผนกสาขาการตลาด","ห้องน้ำครู"],
+      3:["ห้องเรียน 7301","ห้องเรียน 7302","ห้องเรียน 7303","ห้องเรียน 7304","ห้องเรียน 7305","ห้องเรียน 7306","ห้องเรียน 7307","ห้องเรียน 7308","ห้องพักครู","ห้องน้ำครู"],
+      4:["ห้องเรียน 7401","ห้องเรียน 7402","ห้องเรียน 7403","ห้องเรียน 7404","ห้องเรียน 7405","ห้องเรียน 7406","ห้องเรียน 7407","ห้องเรียน 7408","ห้องพักครู","ห้องน้ำครู"],
+      5:["แผนกสาขาจัดการ","ห้องเรียน 7501","ห้องเรียน 7502","ห้องเรียน 7503","ห้องเรียน 7504","ห้องเรียน 7505","ห้องเรียน 7506","ห้องเรียน 7507","ห้องน้ำครู"],
+      6:["ห้องเรียน 7601","ห้องเรียน 7602","ห้องเรียน 7603","ห้องเรียน 7604","ห้องเรียน 7605","ห้องเรียน 7606","ห้องเรียน 7607","ห้องเรียน 7608","ห้องพักครู","ห้องน้ำครู"],
+      7:["ห้องเรียน 7701","ห้องเรียน 7702","ห้องเรียน 7703","ห้องเรียน 7704","ห้องเรียน 7705","ห้องเรียน 7706","ห้องเรียน 7707","ห้องเรียน 7708","คณะวิชาการเลขานุการ","ห้องน้ำครู"]
+    },
+    lat:13.676152,
+    lng:100.616919,
+    x:575,y:190
+  },
+  8:{
+    description: "อยู่ระหว่างตึก9 กับ ตึก6",
+    image:"images/b8.jpg",
+    name:"ตึก 8 อาคารเฉลิมพระเกียรติ",
+    floors:{
+      1:["ลานอเนกประสงค์ใช้ทำกิจกรรมต่างๆ","ห้องชมรมเลขานุการ","ห้องอธท","ห้องประชุมพันธ์ทิพย์"],
+      2:["โรงอาหาร","ห้องน้ำ","ห้องอาหารครู"],
+      3:["ห้องประชุมใหญ่","ห้องน้ำ","ห้องควบคุมเสียง แสง และห้องกำกับเวที"]
+    },
+    lat:13.676763,
+    lng:100.616052,
+    x:350,y:320
+  },
+  9:{
+    description: "อยู่ข้างตึก8 ",
+    image:"images/b9.jpg",
+    name:"ตึก 9 อาคารเรียน 9",
+    floors:{
+      1:["ห้องทวิภาคี","ห้องแผนกสาขาวิชาธุรกิจค้าปลีก","ห้องเรียน 9102","ห้องน้ำ"],
+      2:["สำนักงานฝ่ายแผนงาน","ห้องประชุมอาคาร 9","ห้องงานวางแผนและ งบประมาณ","ห้องงานศูนย์ข้อมูลสารสนเทศ","ห้องงานวิจัยพัฒนาและ มาตรฐานการศึกษา"],
+      3:["ห้องสมุดของวิทยาลัย","ห้องศูนย์อินเตอร์เน็ต","ห้องเรียน 9301"," ห้องเรียน 9302","ห้องเรียน 9303","ห้องน้ำ"],
+      4:["แผนกสาขาภาษาต่างประเทศ","ห้องเรียน 9401","ห้องเรียน 9402","ห้องเรียน 9403","ห้องเรียน 9404","ห้องเรียน 9405","ห้องเรียน 9406","ห้องเรียน 9409"],
+      5:["ห้องเรียน 9501","ห้องเรียน 9502","ห้องเรียน 9503","ห้องเรียน 9504","ห้องเรียน 9505","ห้องเรียน 9506"],
+      6:["ห้องพักครู","แผนกสาขาคอมพิวเตอร์","ห้องเรียน 9601","ห้องเรียน 9602","ห้องเรียน 9605","ห้องเรียน 9606"],
+      7:["แผนกสาขาเทคโนโลยีสารสนเทศ","ห้องพักครู","ห้องเรียน 9701","ห้องเรียน 9702","ห้องเรียน 9705","ห้องเรียน 9706"]
+    },
+    lat:13.677123,
+    lng:100.615585,
+    x:200,y:330
+  },
+  10:{
+    description: "อยู่ข้างหลังตึก8",
+    image:"images/b10.jpg",
+    name:"คูหาลูกเสือวิสามัญ",
+    floors:{
+      1:["พื้นที่อนุสรณ์"]
+    },
+    lat:13.676879,
+    lng:100.616326,
+    x:370,y:220
+  },
+  11:{
+    description: "อยู่ข้างตึก9",
+    image:"images/b11.jpg",
+    name:"สนามฟุตบอล",
+    floors:{
+      1:["สนามแข่งขัน","สแตน"]
+    },
+    lat:13.677384,
+    lng:100.615801,
+    x:210,y:240
+  },
+  12:{
+    description: "อยู่ข้างตึก5",
+    image:"images/b12.jpg",
+    name:"โดมหน้าเสาธง",
+    floors:{
+      1:["สนามกิจกรรม","พื้นที่ออกกำลังกาย"]
+    },
+    lat:13.675155,
+    lng:100.615933,
+    x:610,y:560
+  }
+};
+
+const bSelect = document.getElementById("buildingSelect");
+const fSelect = document.getElementById("floorSelect");
+const roomListDiv = document.getElementById("roomList");
+
+// Setup Building Dropdown
+for (const id in buildings) {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = buildings[id].name;
+    bSelect.appendChild(opt);
+}
+
+function updateFloors() {
+    const bId = bSelect.value;
+    fSelect.innerHTML = '<option value="">-- เลือกชั้น --</option>';
+    
+    if (!bId) {
+        resetDisplay();
+        return;
+    }
+
+    const b = buildings[bId];
+    document.getElementById("bName").textContent = b.name;
+    document.getElementById("bDesc").textContent = b.description;
+    document.getElementById("bImg").src = b.image;
+    document.getElementById("imgWrapper").style.display = "block";
+
+    for (const floor in b.floors) {
+        const opt = document.createElement("option");
+        opt.value = floor;
+        opt.textContent = "ชั้น " + floor;
+        fSelect.appendChild(opt);
+    }
+}
+
+/* --- JavaScript สำหรับฟังก์ชัน showRooms แบบใหม่ (ใส่ไอคอนอัตโนมัติ) --- */
+function showRooms() {
+    const bId = bSelect.value;
+    const floor = fSelect.value;
+    if (!bId || !floor) return;
+
+    const rooms = buildings[bId].floors[floor];
+    // ปรับปรุงหัวข้อชั้น
+    document.getElementById("floorTitle").innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">🏢</span>
+            <span>ชั้น ${floor} - ${buildings[bId].name}</span>
+        </div>
+    `;
+    
+    roomListDiv.innerHTML = ""; // ล้างข้อมูลเดิม
+
+    if (rooms.length === 0) {
+        roomListDiv.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 20px;">🚫 ไม่พบข้อมูลห้องเรียนในชั้นนี้</div>`;
+        return;
+    }
+
+    rooms.forEach(room => {
+        const item = document.createElement("div");
+        item.className = "room-item";
+        
+        // --- ฟังก์ชันกำหนด Emoji ตามชื่อห้อง ---
+        let iconHtml = '<div class="room-icon">📖</div>'; // ไอคอนมาตรฐาน (หนังสือ)
+
+        const roomName = room.toLowerCase();
+
+        if (roomName.includes("คอมพิวเตอร์") || roomName.includes("lab") || roomName.includes("it") || roomName.includes("สารสนเทศ")) {
+            iconHtml = '<div class="room-icon">💻</div>'; // ห้องคอม/Lab
+        } else if (roomName.includes("พักครู")) {
+            iconHtml = '<div class="room-icon">👨‍🏫</div>'; // ห้องพักครู
+        } else if (roomName.includes("การเงิน") || roomName.includes("บัญชี")) {
+            iconHtml = '<div class="room-icon">💰</div>'; // การเงิน/บัญชี
+        } else if (roomName.includes("ห้องเรียน")) {
+            iconHtml = '<div class="room-icon">✍️</div>'; // ห้องเรียนทั่วไป
+        } else if (roomName.includes("ประชุม")) {
+            iconHtml = '<div class="room-icon">🤝</div>'; // ห้องประชุม
+        } else if (roomName.includes("ประชาสัมพันธ์")) {
+            iconHtml = '<div class="room-icon">📣</div>'; // ประชาสัมพันธ์
+        } else if (roomName.includes("สมุด")) {
+            iconHtml = '<div class="room-icon">📚</div>'; // ห้องสมุด
+        } else if (roomName.includes("โรงแรม")) {
+            iconHtml = '<div class="room-icon">🏨</div>'; // สาขาโรงแรม
+        } else if (roomName.includes("ค้าปลีก")) {
+            iconHtml = '<div class="room-icon">🛍️</div>'; // สาขาค้าปลีก
+        } else if (roomName.includes("น้ำ")) {
+            iconHtml = '<div class="room-icon">🚻</div>'; // ห้องน้ำ
+        }
+        // --- จบฟังก์ชันกำหนด Emoji ---
+
+        item.innerHTML = `${iconHtml} <span>${room}</span>`;
+        roomListDiv.appendChild(item);
+    });
+}
+
+function handleSearch() {
+    const query = document.getElementById("search").value.toLowerCase().trim();
+    if (!query) return;
+
+    const mainArea = document.querySelector("main");
+    const roomContainer = document.querySelector(".room-list-container");
+
+    for (const id in buildings) {
+        const b = buildings[id];
+        for (const floor in b.floors) {
+            // ค้นหาห้องที่ตรงกับคำค้นหา
+            const foundRoom = b.floors[floor].find(r => r.toLowerCase().includes(query));
+            
+            if (foundRoom) {
+                // 1. เลือกอาคารใน Dropdown
+                bSelect.value = id; 
+                
+                // 2. เรียกฟังก์ชัน updateFloors เพื่อแสดงรูปตึกและข้อมูลฝั่งซ้าย
+                updateFloors(); 
+                
+                // 3. ปรับ Layout หน้าจอให้แสดงส่วนรายชื่อห้อง (ฝั่งขวา)
+                mainArea.classList.remove("full-width");
+                roomContainer.style.display = "block";
+
+                // 4. เลือกชั้นใน Dropdown และแสดงรายชื่อห้อง
+                fSelect.value = floor;
+                showRooms();
+                
+                // 5. แสดงปุ่มย้อนกลับ
+                document.getElementById("backBtn").style.display = "flex";
+
+                // 6. ไฮไลต์ห้องที่ค้นหาพบ
+                const listItems = roomListDiv.querySelectorAll(".room-item");
+                listItems.forEach(item => {
+                    if (item.textContent.toLowerCase().includes(query)) {
+                        item.classList.add("highlight-item");
+                        // เลื่อนตำแหน่งให้ห้องที่พบอยู่กลางหน้าจอฝั่งขวา
+                        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+                return; // หยุดการทำงานเมื่อเจอห้องแรกที่ตรงเงื่อนไข
+            }
+        }
+    }
+}
+
+function resetDisplay() {
+    document.getElementById("bName").textContent = "ยินดีต้อนรับ";
+    document.getElementById("bDesc").textContent = "กรุณาเลือกอาคารหรือค้นหาห้องที่ท่านต้องการทราบข้อมูล";
+    document.getElementById("imgWrapper").style.display = "none";
+    roomListDiv.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">เลือกอาคารและชั้นเพื่อแสดงผล</div>';
+}
+
+function toggleNight() {
+    document.body.classList.toggle("night");
+}
+
+
+function initHomePage() {
+    const bName = document.getElementById("bName");
+    const bDesc = document.getElementById("bDesc");
+    const imgWrapper = document.getElementById("imgWrapper");
+    const mainArea = document.querySelector("main");
+    const roomContainer = document.querySelector(".room-list-container");
+    
+    // ตั้งค่าสถานะเริ่มต้น: ขยายเต็มจอและซ่อนส่วนรายชื่อห้อง
+    mainArea.classList.add("full-width");
+    roomContainer.style.display = "none";
+
+    bName.innerHTML = "🏛️ รายชื่ออาคารทั้งหมด";
+    bDesc.innerHTML = "คลิกเลือกอาคารเพื่อดูข้อมูลห้องเรียนและแผนผังรายชั้น";
+    imgWrapper.style.display = "none";
+
+    const grid = document.createElement("div");
+    grid.className = "building-grid";
+    grid.id = "buildingGrid";
+
+    for (const id in buildings) {
+        const b = buildings[id];
+        const card = document.createElement("div");
+        card.className = "building-card";
+        
+        card.onclick = () => {
+            bSelect.value = id; 
+            updateFloors(); 
+            
+            // เมื่อคลิกอาคาร: ปรับหน้าจอกลับมาเป็น 2 ฝั่ง และแสดงรายชื่อห้อง
+            mainArea.classList.remove("full-width");
+            roomContainer.style.display = "block";
+
+            const floorsAvailable = Object.keys(b.floors);
+            if (floorsAvailable.length > 0) {
+                fSelect.value = floorsAvailable[0];
+                showRooms(); 
+            }
+            document.getElementById("backBtn").style.display = "flex";
+            document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        card.innerHTML = `
+            <img src="${b.image}" class="card-img" alt="${b.name}">
+            <div class="card-info">
+                <h4>${b.name}</h4>
+                <p>${b.description}</p>
+            </div>
+        `;
+        grid.appendChild(card);
+    }
+
+    const detailPanel = document.querySelector(".building-detail");
+    const oldGrid = document.getElementById("buildingGrid");
+    if(oldGrid) oldGrid.remove();
+    detailPanel.appendChild(grid);
+}
+// ปรับปรุงฟังก์ชันย้อนกลับให้ซ่อนรายชื่อห้องเมื่อกลับหน้าหลัก
+function resetToHome() {
+    bSelect.value = "";
+    fSelect.innerHTML = '<option value="">-- เลือกชั้น --</option>';
+    
+    const mainArea = document.querySelector("main");
+    const roomContainer = document.querySelector(".room-list-container");
+    
+    // กลับสู่สถานะเต็มหน้าจอและซ่อนส่วนขวา
+    mainArea.classList.add("full-width");
+    roomContainer.style.display = "none";
+
+    document.getElementById("floorTitle").innerHTML = "🏫 รายชื่อห้องเรียน"; 
+    roomListDiv.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">เลือกอาคารเพื่อแสดงผลรายชั้น</div>';
+    
+    document.getElementById("imgWrapper").style.display = "none";
+    document.getElementById("backBtn").style.display = "none"; 
+    
+    initHomePage();
+}
+
+// ฟังก์ชันอัปเดตข้อมูลเมื่อมีการเปลี่ยนอาคารใน Dropdown
+const originalUpdateFloors = updateFloors;
+updateFloors = function() {
+    const bId = bSelect.value;
+    const grid = document.getElementById("buildingGrid");
+    const backBtn = document.getElementById("backBtn");
+    
+    // --- ส่วนที่เพิ่มเพื่อรีเซ็ตข้อมูลฝั่งขวา ---
+    // ทุกครั้งที่เลือกอาคารใหม่ ให้ล้างเลขชั้นและรายชื่อห้องเดิมออกทันที
+    document.getElementById("floorTitle").innerHTML = "🏫 รายชื่อห้องเรียน"; 
+    roomListDiv.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">เลือกชั้นเพื่อแสดงผลรายห้อง</div>';
+    fSelect.value = ""; // รีเซ็ตตัวเลือกชั้นให้เป็นค่าว่าง
+    // --------------------------------------
+
+    if (bId) {
+        if(grid) grid.style.display = "none"; 
+        backBtn.style.display = "flex"; 
+        
+        const b = buildings[bId];
+        document.getElementById("bName").textContent = b.name;
+        document.getElementById("bDesc").textContent = b.description;
+        document.getElementById("bImg").src = b.image;
+        document.getElementById("imgWrapper").style.display = "block";
+
+        // ล้างและโหลดรายการชั้นใหม่สำหรับอาคารที่เลือก
+        fSelect.innerHTML = '<option value="">-- เลือกชั้น --</option>';
+        for (const floor in b.floors) {
+            const opt = document.createElement("option");
+            opt.value = floor;
+            opt.textContent = "ชั้น " + floor;
+            fSelect.appendChild(opt);
+        }
+    } else {
+        resetToHome();
+    }
+};
+
+// ตรวจสอบให้แน่ใจว่าโหลดหน้าแรกเมื่อเปิดเว็บ
+window.addEventListener('DOMContentLoaded', initHomePage);
+
+</script>
+
+</body>
+</html>
